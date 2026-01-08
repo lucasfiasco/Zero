@@ -1,0 +1,3 @@
+/home/lucas/usr/CompSci/zero/build/CMakeFiles/zero.dir
+/home/lucas/usr/CompSci/zero/build/CMakeFiles/edit_cache.dir
+/home/lucas/usr/CompSci/zero/build/CMakeFiles/rebuild_cache.dir
