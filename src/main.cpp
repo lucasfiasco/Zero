@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 // Zero -> tokenize -> AST (Nodes -> return, conditional, recursion, variable)
+// (return, string), (0, int)
 std::string fileReader(const char *inputFilePath) {
   std::string fileContents = "";
   std::string fileLine = "";
@@ -16,6 +17,13 @@ std::string fileReader(const char *inputFilePath) {
   reader.close();
   return fileContents;
 }
+
+enum class TokenType { Keyword, Identifier, Integer, Symbol };
+
+struct Token {
+  TokenType type;
+  std::string value;
+};
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
