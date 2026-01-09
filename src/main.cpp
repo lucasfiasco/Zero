@@ -40,6 +40,7 @@ std::vector<Token> tokenizer(const std::string &inputedFileStringContents) {
       ++i;
       continue;
     }
+
     if (std::isalpha(x) || x == '_') {
       size_t start = i;
       while (i < inputedFileStringContents.size() &&
@@ -52,14 +53,28 @@ std::vector<Token> tokenizer(const std::string &inputedFileStringContents) {
         tokens.push_back({TokenType::Keyword, word});
       else
         tokens.push_back({TokenType::Identifier, word});
-
       continue;
     }
+
+    if (std::isdigit(static_cast<unsigned char>(x))) {
+      size_t start = i;
+      while (i < inputedFileStringContents.size() &&
+             std::isdigit(static_cast<unsigned char>(
+                 inputedFileStringContents.at(i)))) {
+        ++i;
+      }
+      tokens.push_back({TokenType::Integer,
+                        inputedFileStringContents.substr(start, i - start)});
+      continue;
+    }
+
     tokens.push_back({TokenType::Symbol, std::string(1, x)});
     ++i;
   }
+
   return tokens;
 }
+
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
