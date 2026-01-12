@@ -1,6 +1,8 @@
+#include "ast.hpp"
 #include <cctype>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -20,14 +22,6 @@ std::string fileReader(const char *inputFilePath) {
   reader.close();
   return fileContents;
 }
-
-enum class TokenType { Keyword, Identifier, Integer, Symbol };
-
-struct Token {
-  TokenType type;
-  std::string value;
-};
-
 std::vector<Token> tokenizer(const std::string &inputedFileStringContents) {
   std::vector<Token> tokens;
   size_t i = 0;
@@ -59,8 +53,8 @@ std::vector<Token> tokenizer(const std::string &inputedFileStringContents) {
     if (std::isdigit(static_cast<unsigned char>(x))) {
       size_t start = i;
       while (i < inputedFileStringContents.size() &&
-             std::isdigit(static_cast<unsigned char>(
-                 inputedFileStringContents.at(i)))) {
+             std::isdigit(
+                 static_cast<unsigned char>(inputedFileStringContents.at(i)))) {
         ++i;
       }
       tokens.push_back({TokenType::Integer,
@@ -75,16 +69,39 @@ std::vector<Token> tokenizer(const std::string &inputedFileStringContents) {
   return tokens;
 }
 
+std::string tokensToAsm(const std::vector<Token> &tokens) {
+  std::stringstream output;
+  output << "global _start\nstart:\n";
+  for (int i = 0; i < tokens.size(); i++) {
+    const Token &token = tokens.at(i);
+    if (token.type == TokenType::Keyword) {
+      if (i + 1 < tokens.size() &&
+          tokens.at(i + 1).type == TokenType::Integer) {
+        if (i + 2 < tokens.size() &&
+            tokens.at(i + 2).type == TokenType::Symbol) {
+          output << "    mov rax, 60\n";
+          output << "    mov rdi, " << tokens.at(i + 1).value << "\n";
+          output << "    syscall";
+        }
+      }
+    }
+  }
+  return output.str();
+}
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    std::cerr << "error" << std::endl;
+    std::cerr << "Incorrect arguments passed! File expected." << std::endl;
     return 2;
   }
   auto tokens = tokenizer(fileReader(argv[1]));
   for (const auto &t : tokens) {
-    std::cout << "(" << static_cast<int>(t.type) << ", \"" << t.value
-              << "\")\n";
+    // std::cout << "(" << static_cast<int>(t.type) << ", \"" << t.value <<
+    // "\")\n";
+    std::cout << "(" << static_cast<int>(t.type) << ", \"" << t.value << "\")";
   }
+  auto asmText = miniCompiler::compileTokensToAsm(tokens);
+  std::fstream file("src/out.asm", std::ios::out);
+  file << asmText;
   return 0;
 }
