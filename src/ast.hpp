@@ -8,7 +8,6 @@
 #include <vector>
 
 namespace miniCompiler {
-
 struct ParseError : std::runtime_error {
   using std::runtime_error::runtime_error;
 };
@@ -21,18 +20,20 @@ struct Expr {
   virtual ~Expr() = default;
 };
 
-struct IntExpr final : Expr {
+struct IntExpr final : Expr { // int literal node
   long long value;
   explicit IntExpr(long long value) : value(value) {}
 };
 
 struct BinaryExpr final : Expr {
-  char op;
-  std::unique_ptr<Expr> left;
-  std::unique_ptr<Expr> right;
+  // represents a binary operator expression
+  char op;                     // -> +
+  std::unique_ptr<Expr> left;  // left var
+  std::unique_ptr<Expr> right; // right var
 
   BinaryExpr(char op, std::unique_ptr<Expr> left, std::unique_ptr<Expr> right)
-      : op(op), left(std::move(left)), right(std::move(right)) {}
+      : op(op), left(std::move(left)), right(std::move(right)) {
+  } // moves left right vars into nodes
 };
 
 struct Stmt {
@@ -40,20 +41,21 @@ struct Stmt {
 };
 
 struct ReturnStmt final : Stmt {
-  std::unique_ptr<Expr> value;
+  std::unique_ptr<Expr> value; // return <expr>;
+
   explicit ReturnStmt(std::unique_ptr<Expr> value) : value(std::move(value)) {}
 };
 
 class Parser {
 public:
   explicit Parser(const std::vector<Token> &tokens) : tokens(tokens), pos(0) {}
-
   std::unique_ptr<Stmt> parseStatement() {
-    if (!matchKeyword("return")) {
+    if (!matchKeyword("return")) { // only parsing 1 statement rn
       throw ParseError("Expected 'return' at start of statement");
     }
     auto expr = parseExpression();
     expectSymbol(";");
+    // expects ; if no throws
     return std::make_unique<ReturnStmt>(std::move(expr));
   }
 
@@ -77,6 +79,8 @@ private:
   }
 
   bool matchKeyword(const std::string &kw) {
+    // If the next token is a keyword equal to kw, consume it and return true
+    // Otherwise do nothing and return false
     if (!isAtEnd() && tokens.at(pos).type == TokenType::Keyword &&
         tokens.at(pos).value == kw) {
       pos += 1;
@@ -106,13 +110,15 @@ private:
       auto right = parsePrimary();
       left =
           std::make_unique<BinaryExpr>('+', std::move(left), std::move(right));
+      // turns 1+2+3 into -> (1+2)+3 doesnt do much with only addition but :)
+      // maybe one day
     }
     return left;
   }
 
   std::unique_ptr<Expr> parsePrimary() {
     if (isAtEnd()) {
-      throw ParseError("Expected primary expression, got end of input");
+      throw ParseError("no tokens expect primary expression");
     }
 
     const Token &t = peek();
@@ -121,6 +127,7 @@ private:
       long long value = 0;
       try {
         value = std::stoll(t.value);
+        // convers to long long, std::stoll prevents weird stuff happening
       } catch (...) {
         throw ParseError("Invalid integer literal: " + t.value);
       }
@@ -164,7 +171,7 @@ inline void genExprAsm(std::stringstream &out, const Expr &expr) {
       throw CodegenError("Only '+' is supported right now");
     }
 
-    genExprAsm(out, *b->left); 
+    genExprAsm(out, *b->left);
     out << "    push rax\n";
     genExprAsm(out, *b->right);
     out << "    pop rcx\n";
@@ -186,7 +193,7 @@ inline std::string compileStmtToAsm(const Stmt &stmt) {
     throw CodegenError("Only return statements are supported");
   }
 
-  genExprAsm(out, *ret->value); 
+  genExprAsm(out, *ret->value);
   out << "    mov rdi, rax\n";
   out << "    mov rax, 60\n";
   out << "    syscall\n";
@@ -205,4 +212,4 @@ inline std::string compileTokensToAsm(const std::vector<Token> &tokens) {
   return compileStmtToAsm(*stmt);
 }
 
-}
+} // namespace miniCompiler
