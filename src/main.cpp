@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include "ast.hpp"
 // Zero -> tokenize -> AST (Nodes -> return, conditional, recursion, variable)
 // (return, string), (0, int)
 std::string fileReader(const char *inputFilePath) {
@@ -20,13 +21,6 @@ std::string fileReader(const char *inputFilePath) {
   reader.close();
   return fileContents;
 }
-
-enum class TokenType { Keyword, Identifier, Integer, Symbol };
-
-struct Token {
-  TokenType type;
-  std::string value;
-};
 
 std::vector<Token> tokenizer(const std::string &inputedFileStringContents) {
   std::vector<Token> tokens;
@@ -59,8 +53,8 @@ std::vector<Token> tokenizer(const std::string &inputedFileStringContents) {
     if (std::isdigit(static_cast<unsigned char>(x))) {
       size_t start = i;
       while (i < inputedFileStringContents.size() &&
-             std::isdigit(static_cast<unsigned char>(
-                 inputedFileStringContents.at(i)))) {
+             std::isdigit(
+                 static_cast<unsigned char>(inputedFileStringContents.at(i)))) {
         ++i;
       }
       tokens.push_back({TokenType::Integer,
@@ -74,7 +68,6 @@ std::vector<Token> tokenizer(const std::string &inputedFileStringContents) {
 
   return tokens;
 }
-
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
