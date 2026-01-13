@@ -74,10 +74,9 @@ int main(int argc, char *argv[]) {
     std::cerr << "error" << std::endl;
     return 2;
   }
-  auto tokens = tokenizer(fileReader(argv[1]));
-  for (const auto &t : tokens) {
-    std::cout << "(" << static_cast<int>(t.type) << ", \"" << t.value
-              << "\")\n";
-  }
+  auto toks = tokenizer(fileReader(argv[1]));
+  auto asmText = miniCompiler::compileTokensToAsm(toks);
+  std::ofstream("out.asm") << asmText;
+
   return 0;
 }

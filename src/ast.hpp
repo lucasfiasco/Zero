@@ -178,8 +178,7 @@ inline void genExprAsm(std::stringstream &out, const Expr &expr) {
 inline std::string compileStmtToAsm(const Stmt &stmt) {
   std::stringstream out;
 
-  out << ".intel_syntax noprefix\n";
-  out << ".global _start\n";
+  out << "global _start\n";
   out << "_start:\n";
 
   auto const *ret = dynamic_cast<ReturnStmt const *>(&stmt);
